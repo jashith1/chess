@@ -6,6 +6,10 @@
 	background-image: url('../../public/possibleMove.png');
 }
 
+.possible_kill {
+	content: url('../../public/possibleKill.png');
+}
+
 .wp {
 	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo_wood/150/wp.png');
 }

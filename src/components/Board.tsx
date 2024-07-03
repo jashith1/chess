@@ -1,6 +1,6 @@
 export default function Board() {
 	return (
-		<>
+		<div id='board'>
 			{Array.from({ length: 8 }, (_, row) => (
 				<div key={row}>
 					{Array.from({ length: 8 }, (_, col) => {
@@ -11,6 +11,6 @@ export default function Board() {
 					})}
 				</div>
 			))}
-		</>
+		</div>
 	);
 }
