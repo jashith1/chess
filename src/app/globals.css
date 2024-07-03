@@ -12,4 +12,7 @@ body {
 	width: 100px;
 	height: 100px;
 	vertical-align: top;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
 }

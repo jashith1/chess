@@ -1,5 +1,6 @@
 'use client';
 import Board from '@/components/Board';
+import handlePieceSelection from '@/helpers/handlePieceSelection';
 import { useEffect } from 'react';
 
 export default function Home() {
@@ -24,33 +25,10 @@ function initializeBoard() {
 			const elm = document.getElementById(`${row}-${col}`);
 			if (!elm) continue;
 
-			elm.addEventListener('click', handlePawnSelection);
+			elm.addEventListener('click', handlePieceSelection);
 
-			elm.classList.add('piece');
-			if (row === 0 || row === 1) elm.classList.add(row === 0 ? 'bp' : `b${positionStack[col]}`);
+			if (row === 0 || row === 1) elm.classList.add(row === 1 ? 'bp' : `b${positionStack[col]}`);
 			else elm.classList.add(row === 6 ? 'wp' : `w${positionStack[col]}`);
 		}
 	});
-}
-
-function clearPreviousSelections() {
-	document.querySelectorAll('.possible_move').forEach((e) => {
-		e.classList.remove('possible_move');
-	});
-	document.querySelectorAll('.bg-blue-500').forEach((e) => {
-		e.classList.remove('bg-blue-500');
-	});
-}
-
-function handlePawnSelection(e: any) {
-	clearPreviousSelections();
-	let classes = e?.target?.classList;
-	let piece = classes[classes.length - 1];
-	let [row, col] = e?.target?.id.split('-').map(Number);
-	classes.add('bg-blue-500');
-
-	if (piece === 'wp') {
-		document.getElementById(`${row - 1}-${col}`)?.classList.add('possible_move');
-		document.getElementById(`${row - 2}-${col}`)?.classList.add('possible_move');
-	}
 }
