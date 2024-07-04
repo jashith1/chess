@@ -8,11 +8,12 @@ const pieceMovements = {
 	r: rookCalculation,
 	b: bishopCalculation,
 	q: queenCalculation,
+	n: knightCalculation,
 };
 
 export default function movementCalculation(team: string, piece: string, row: number, col: number) {
 	let enemy = team === 'w' ? 'b' : 'w';
-	if (!(piece === 'p' || piece === 'r' || piece === 'b' || piece === 'q')) return;
+	if (!(piece === 'p' || piece === 'r' || piece === 'b' || piece === 'q' || piece === 'n')) return;
 	const calculationNeeded = pieceMovements[piece];
 	if (calculationNeeded) {
 		const { possibleMoves, possibleKills } = calculationNeeded(team, enemy, row, col);
@@ -39,11 +40,12 @@ function addMoveIfValid(moves: HTMLElement[], row: number, col: number) {
 }
 
 //for those pieces that can travel infinite distance before being blocked by another piece or board (like rook, bishop and queen)
-function calculateDistance(directions: { rowDelta: number; colDelta: number }[], possibleMoves: HTMLElement[], possibleKills: HTMLElement[], row: number, col: number, enemy: string) {
+function calculateDistance(directions: { rowDelta: number; colDelta: number }[], possibleMoves: HTMLElement[], possibleKills: HTMLElement[], row: number, col: number, enemy: string, maxMovement = 7, canJump = false) {
 	directions.forEach((direction) => {
-		for (let i = 1; i < 8; i++) {
+		for (let i = 1; i <= maxMovement; i++) {
 			let toTest = document.getElementById(`${row + direction.rowDelta * i}-${col + direction.colDelta * i}`);
-			if (!toTest) break; //out of bounds
+			if (!toTest && !canJump) break; //out of bounds
+			else if(!toTest) continue;
 			let pieceAtLoc = hasPiece(toTest);
 			if (!pieceAtLoc) possibleMoves.push(toTest);
 			else if (pieceAtLoc[0] === enemy) {
@@ -124,6 +126,25 @@ function queenCalculation(team: string, enemy: string, row: number, col: number)
 	];
 
 	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy);
+
+	return { possibleMoves, possibleKills };
+}
+
+function knightCalculation(team: string, enemy: string, row: number, col: number) {
+	let possibleMoves: HTMLElement[] = [];
+	let possibleKills: HTMLElement[] = [];
+	const directions = [
+		{ rowDelta: 2, colDelta: 1 },
+		{ rowDelta: 2, colDelta: -1 },
+		{ rowDelta: -2, colDelta: 1 },
+		{ rowDelta: -2, colDelta: -1 },
+		{ rowDelta: 1, colDelta: 2 },
+		{ rowDelta: 1, colDelta: -2 },
+		{ rowDelta: -1, colDelta: 2 },
+		{ rowDelta: -1, colDelta: -2 },
+	];
+
+	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy, 1, true);
 
 	return { possibleMoves, possibleKills };
 }
