@@ -9,11 +9,12 @@ const pieceMovements = {
 	b: bishopCalculation,
 	q: queenCalculation,
 	n: knightCalculation,
+	k: kingCalculation
 };
 
 export default function movementCalculation(team: string, piece: string, row: number, col: number) {
 	let enemy = team === 'w' ? 'b' : 'w';
-	if (!(piece === 'p' || piece === 'r' || piece === 'b' || piece === 'q' || piece === 'n')) return;
+	if (!(piece === 'p' || piece === 'r' || piece === 'b' || piece === 'q' || piece === 'n' || piece === 'k')) return;
 	const calculationNeeded = pieceMovements[piece];
 	if (calculationNeeded) {
 		const { possibleMoves, possibleKills } = calculationNeeded(team, enemy, row, col);
@@ -145,6 +146,25 @@ function knightCalculation(team: string, enemy: string, row: number, col: number
 	];
 
 	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy, 1, true);
+
+	return { possibleMoves, possibleKills };
+}
+
+function kingCalculation(team: string, enemy: string, row: number, col: number) {
+	let possibleMoves: HTMLElement[] = [];
+	let possibleKills: HTMLElement[] = [];
+	const directions = [
+		{ rowDelta: 1, colDelta: 0 },
+		{ rowDelta: -1, colDelta: 0 },
+		{ rowDelta: 0, colDelta: 1 },
+		{ rowDelta: 0, colDelta: -1 },
+		{ rowDelta: 1, colDelta: 1 },
+		{ rowDelta: 1, colDelta: -1 },
+		{ rowDelta: -1, colDelta: 1 },
+		{ rowDelta: -1, colDelta: -1 },
+	];
+
+	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy, 1);
 
 	return { possibleMoves, possibleKills };
 }
