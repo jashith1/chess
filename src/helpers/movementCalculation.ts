@@ -1,5 +1,4 @@
 'use client';
-import clearPreviousSelections from './clearPreviousSelections';
 import handleMove from './handleMove';
 import handlePieceSelection from './handlePieceSelection';
 import hasPiece from './hasPiece';
@@ -7,11 +6,13 @@ import hasPiece from './hasPiece';
 const pieceMovements = {
 	p: pawnCalculation,
 	r: rookCalculation,
+	b: bishopCalculation,
+	q: queenCalculation,
 };
 
 export default function movementCalculation(team: string, piece: string, row: number, col: number) {
 	let enemy = team === 'w' ? 'b' : 'w';
-	if (!(piece === 'p' || piece === 'r')) return;
+	if (!(piece === 'p' || piece === 'r' || piece === 'b' || piece === 'q')) return;
 	const calculationNeeded = pieceMovements[piece];
 	if (calculationNeeded) {
 		const { possibleMoves, possibleKills } = calculationNeeded(team, enemy, row, col);
@@ -35,6 +36,22 @@ function addMoveIfValid(moves: HTMLElement[], row: number, col: number) {
 	const position = document.getElementById(`${row}-${col}`);
 	if (!position) return;
 	if (!hasPiece(position)) moves.push(position);
+}
+
+//for those pieces that can travel infinite distance before being blocked by another piece or board (like rook, bishop and queen)
+function calculateDistance(directions: { rowDelta: number; colDelta: number }[], possibleMoves: HTMLElement[], possibleKills: HTMLElement[], row: number, col: number, enemy: string) {
+	directions.forEach((direction) => {
+		for (let i = 1; i < 8; i++) {
+			let toTest = document.getElementById(`${row + direction.rowDelta * i}-${col + direction.colDelta * i}`);
+			if (!toTest) break; //out of bounds
+			let pieceAtLoc = hasPiece(toTest);
+			if (!pieceAtLoc) possibleMoves.push(toTest);
+			else if (pieceAtLoc[0] === enemy) {
+				possibleKills.push(toTest);
+				break;
+			} else break;
+		}
+	});
 }
 
 function pawnCalculation(team: string, enemy: string, row: number, col: number) {
@@ -72,18 +89,41 @@ function rookCalculation(team: string, enemy: string, row: number, col: number) 
 		{ rowDelta: 0, colDelta: -1 },
 	];
 
-	directions.forEach((direction) => {
-		for (let i = 1; i < 8; i++) {
-			let toTest = document.getElementById(`${row + direction.rowDelta * i}-${col + direction.colDelta * i}`);
-			if (!toTest) break; //out of bounds
-			let pieceAtLoc = hasPiece(toTest);
-			if (!pieceAtLoc) possibleMoves.push(toTest);
-			else if (pieceAtLoc[0] === enemy) {
-				possibleKills.push(toTest);
-				break;
-			} else break;
-		}
-	});
+	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy);
+
+	return { possibleMoves, possibleKills };
+}
+
+function bishopCalculation(team: string, enemy: string, row: number, col: number) {
+	let possibleMoves: HTMLElement[] = [];
+	let possibleKills: HTMLElement[] = [];
+	const directions = [
+		{ rowDelta: 1, colDelta: 1 },
+		{ rowDelta: 1, colDelta: -1 },
+		{ rowDelta: -1, colDelta: 1 },
+		{ rowDelta: -1, colDelta: -1 },
+	];
+
+	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy);
+
+	return { possibleMoves, possibleKills };
+}
+
+function queenCalculation(team: string, enemy: string, row: number, col: number) {
+	let possibleMoves: HTMLElement[] = [];
+	let possibleKills: HTMLElement[] = [];
+	const directions = [
+		{ rowDelta: 1, colDelta: 0 },
+		{ rowDelta: -1, colDelta: 0 },
+		{ rowDelta: 0, colDelta: 1 },
+		{ rowDelta: 0, colDelta: -1 },
+		{ rowDelta: 1, colDelta: 1 },
+		{ rowDelta: 1, colDelta: -1 },
+		{ rowDelta: -1, colDelta: 1 },
+		{ rowDelta: -1, colDelta: -1 },
+	];
+
+	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy);
 
 	return { possibleMoves, possibleKills };
 }
