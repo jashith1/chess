@@ -3,23 +3,71 @@ import handleMove from './handleMove';
 import handlePieceSelection from './handlePieceSelection';
 import hasPiece from './hasPiece';
 
+//moveset of each piece
 const pieceMovements = {
-	p: pawnCalculation,
-	r: rookCalculation,
-	b: bishopCalculation,
-	q: queenCalculation,
-	n: knightCalculation,
-	k: kingCalculation
+	r: {
+		directions: [
+			{ rowDelta: 1, colDelta: 0 },
+			{ rowDelta: -1, colDelta: 0 },
+			{ rowDelta: 0, colDelta: 1 },
+			{ rowDelta: 0, colDelta: -1 },
+		],
+		maxMovement: 7,
+	},
+	b: {
+		directions: [
+			{ rowDelta: 1, colDelta: 1 },
+			{ rowDelta: 1, colDelta: -1 },
+			{ rowDelta: -1, colDelta: 1 },
+			{ rowDelta: -1, colDelta: -1 },
+		],
+		maxMovement: 7,
+	},
+	q: {
+		directions: [
+			{ rowDelta: 1, colDelta: 0 },
+			{ rowDelta: -1, colDelta: 0 },
+			{ rowDelta: 0, colDelta: 1 },
+			{ rowDelta: 0, colDelta: -1 },
+			{ rowDelta: 1, colDelta: 1 },
+			{ rowDelta: 1, colDelta: -1 },
+			{ rowDelta: -1, colDelta: 1 },
+			{ rowDelta: -1, colDelta: -1 },
+		],
+		maxMovement: 7,
+	},
+	n: {
+		directions: [
+			{ rowDelta: 2, colDelta: 1 },
+			{ rowDelta: 2, colDelta: -1 },
+			{ rowDelta: -2, colDelta: 1 },
+			{ rowDelta: -2, colDelta: -1 },
+			{ rowDelta: 1, colDelta: 2 },
+			{ rowDelta: 1, colDelta: -2 },
+			{ rowDelta: -1, colDelta: 2 },
+			{ rowDelta: -1, colDelta: -2 },
+		],
+		maxMovement: 1,
+	},
+	k: {
+		directions: [
+			{ rowDelta: 1, colDelta: 0 },
+			{ rowDelta: -1, colDelta: 0 },
+			{ rowDelta: 0, colDelta: 1 },
+			{ rowDelta: 0, colDelta: -1 },
+			{ rowDelta: 1, colDelta: 1 },
+			{ rowDelta: 1, colDelta: -1 },
+			{ rowDelta: -1, colDelta: 1 },
+			{ rowDelta: -1, colDelta: -1 },
+		],
+		maxMovement: 1,
+	},
 };
 
 export default function movementCalculation(team: string, piece: string, row: number, col: number) {
-	let enemy = team === 'w' ? 'b' : 'w';
-	if (!(piece === 'p' || piece === 'r' || piece === 'b' || piece === 'q' || piece === 'n' || piece === 'k')) return;
-	const calculationNeeded = pieceMovements[piece];
-	if (calculationNeeded) {
-		const { possibleMoves, possibleKills } = calculationNeeded(team, enemy, row, col);
-		setPossibleMoves(possibleMoves, possibleKills);
-	}
+	const enemy = team === 'w' ? 'b' : 'w'; //black/white
+	const { possibleMoves, possibleKills } = calculateMovement(piece, row, col, team, enemy);
+	setPossibleMoves(possibleMoves, possibleKills);
 }
 
 function setPossibleMoves(possibleMoves: (HTMLElement | null)[], possibleKills: (HTMLElement | null)[]) {
@@ -29,24 +77,26 @@ function setPossibleMoves(possibleMoves: (HTMLElement | null)[], possibleKills: 
 	});
 	possibleKills?.forEach((possibleKill) => {
 		possibleKill?.classList.add('possible_kill');
-		possibleKill?.removeEventListener('click', handlePieceSelection);
+		possibleKill?.removeEventListener('click', handlePieceSelection); //should not consider kill move to be selecting the other pawn
 		possibleKill?.addEventListener('click', handleMove);
 	});
 }
 
-function addMoveIfValid(moves: HTMLElement[], row: number, col: number) {
-	const position = document.getElementById(`${row}-${col}`);
-	if (!position) return;
-	if (!hasPiece(position)) moves.push(position);
-}
+function calculateMovement(piece: string, row: number, col: number, team: string, enemy: string) {
+	if (piece === 'p') return pawnCalculation(team, enemy, row, col);
+	let possibleMoves: HTMLElement[] = [];
+	let possibleKills: HTMLElement[] = [];
+	if (!(piece === 'r' || piece === 'b' || piece === 'q' || piece === 'n' || piece === 'k')) return { possibleMoves, possibleKills }; //invalid input
 
-//for those pieces that can travel infinite distance before being blocked by another piece or board (like rook, bishop and queen)
-function calculateDistance(directions: { rowDelta: number; colDelta: number }[], possibleMoves: HTMLElement[], possibleKills: HTMLElement[], row: number, col: number, enemy: string, maxMovement = 7, canJump = false) {
+	const moveset = pieceMovements[piece];
+	const directions = moveset.directions;
+	const maxMovement = moveset.maxMovement;
+
 	directions.forEach((direction) => {
 		for (let i = 1; i <= maxMovement; i++) {
 			let toTest = document.getElementById(`${row + direction.rowDelta * i}-${col + direction.colDelta * i}`);
-			if (!toTest && !canJump) break; //out of bounds
-			else if(!toTest) continue;
+			// out of bounds, cannot continue in this direction so exit
+			if (!toTest) break;
 			let pieceAtLoc = hasPiece(toTest);
 			if (!pieceAtLoc) possibleMoves.push(toTest);
 			else if (pieceAtLoc[0] === enemy) {
@@ -55,19 +105,27 @@ function calculateDistance(directions: { rowDelta: number; colDelta: number }[],
 			} else break;
 		}
 	});
+
+	return { possibleMoves, possibleKills };
 }
 
 function pawnCalculation(team: string, enemy: string, row: number, col: number) {
-	//@to-do pawn transform at enemies last row
-	const moveDirection = team === 'w' ? -1 : 1; //up/down based on white/black
-	const startRow = team === 'w' ? 6 : 1;
+	function addMoveIfValid(row: number, col: number) {
+		const position = document.getElementById(`${row}-${col}`);
+		if (!position) return;
+		if (!hasPiece(position)) possibleMoves.push(position);
+	}
 	let possibleMoves: HTMLElement[] = [];
 	let possibleKills: HTMLElement[] = [];
 
-	addMoveIfValid(possibleMoves, row + moveDirection, col); //basic 1 block movement
+	//@to-do pawn transform at enemies last row
+	const moveDirection = team === 'w' ? -1 : 1; //up/down based on white/black
+	const startRow = team === 'w' ? 6 : 1; //if on start row allow to move 2 blocks (start row for white is 6th from top)
+
+	addMoveIfValid(row + moveDirection, col); //basic 1 block movement
 
 	//allow to move two spaces forward if at start and no other piece blocks it
-	if (row === startRow) addMoveIfValid(possibleMoves, row + moveDirection * 2, col);
+	if (row === startRow) addMoveIfValid(row + moveDirection * 2, col);
 
 	//diagonal kill
 	[1, -1].forEach((direction) => {
@@ -75,96 +133,8 @@ function pawnCalculation(team: string, enemy: string, row: number, col: number) 
 		const location = document.getElementById(`${row + moveDirection}-${col + direction}`);
 		if (!location) return;
 		let pieceAtLoc = hasPiece(location);
-		console.log(pieceAtLoc);
-		if (pieceAtLoc && pieceAtLoc[0] === enemy) possibleKills.push(location);
+		if (pieceAtLoc && pieceAtLoc[0] === enemy) possibleKills.push(location); //allow movement only if diagonal piece is enemy
 	});
-
-	return { possibleMoves, possibleKills };
-}
-
-function rookCalculation(team: string, enemy: string, row: number, col: number) {
-	let possibleMoves: HTMLElement[] = [];
-	let possibleKills: HTMLElement[] = [];
-	const directions = [
-		{ rowDelta: 1, colDelta: 0 },
-		{ rowDelta: -1, colDelta: 0 },
-		{ rowDelta: 0, colDelta: 1 },
-		{ rowDelta: 0, colDelta: -1 },
-	];
-
-	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy);
-
-	return { possibleMoves, possibleKills };
-}
-
-function bishopCalculation(team: string, enemy: string, row: number, col: number) {
-	let possibleMoves: HTMLElement[] = [];
-	let possibleKills: HTMLElement[] = [];
-	const directions = [
-		{ rowDelta: 1, colDelta: 1 },
-		{ rowDelta: 1, colDelta: -1 },
-		{ rowDelta: -1, colDelta: 1 },
-		{ rowDelta: -1, colDelta: -1 },
-	];
-
-	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy);
-
-	return { possibleMoves, possibleKills };
-}
-
-function queenCalculation(team: string, enemy: string, row: number, col: number) {
-	let possibleMoves: HTMLElement[] = [];
-	let possibleKills: HTMLElement[] = [];
-	const directions = [
-		{ rowDelta: 1, colDelta: 0 },
-		{ rowDelta: -1, colDelta: 0 },
-		{ rowDelta: 0, colDelta: 1 },
-		{ rowDelta: 0, colDelta: -1 },
-		{ rowDelta: 1, colDelta: 1 },
-		{ rowDelta: 1, colDelta: -1 },
-		{ rowDelta: -1, colDelta: 1 },
-		{ rowDelta: -1, colDelta: -1 },
-	];
-
-	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy);
-
-	return { possibleMoves, possibleKills };
-}
-
-function knightCalculation(team: string, enemy: string, row: number, col: number) {
-	let possibleMoves: HTMLElement[] = [];
-	let possibleKills: HTMLElement[] = [];
-	const directions = [
-		{ rowDelta: 2, colDelta: 1 },
-		{ rowDelta: 2, colDelta: -1 },
-		{ rowDelta: -2, colDelta: 1 },
-		{ rowDelta: -2, colDelta: -1 },
-		{ rowDelta: 1, colDelta: 2 },
-		{ rowDelta: 1, colDelta: -2 },
-		{ rowDelta: -1, colDelta: 2 },
-		{ rowDelta: -1, colDelta: -2 },
-	];
-
-	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy, 1, true);
-
-	return { possibleMoves, possibleKills };
-}
-
-function kingCalculation(team: string, enemy: string, row: number, col: number) {
-	let possibleMoves: HTMLElement[] = [];
-	let possibleKills: HTMLElement[] = [];
-	const directions = [
-		{ rowDelta: 1, colDelta: 0 },
-		{ rowDelta: -1, colDelta: 0 },
-		{ rowDelta: 0, colDelta: 1 },
-		{ rowDelta: 0, colDelta: -1 },
-		{ rowDelta: 1, colDelta: 1 },
-		{ rowDelta: 1, colDelta: -1 },
-		{ rowDelta: -1, colDelta: 1 },
-		{ rowDelta: -1, colDelta: -1 },
-	];
-
-	calculateDistance(directions, possibleMoves, possibleKills, row, col, enemy, 1);
 
 	return { possibleMoves, possibleKills };
 }
