@@ -1,16 +1,16 @@
 'use client';
 import Board from '@/components/Board';
-import handlePieceSelection from '@/helpers/handlePieceSelection';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+	const [turn, setTurn] = useState('w');
 	useEffect(() => {
 		initializeBoard();
 	}, []);
 
 	return (
 		<>
-			<Board />
+			<Board turn={turn} setTurn={setTurn} />
 		</>
 	);
 }
@@ -25,7 +25,7 @@ function initializeBoard() {
 			const elm = document.getElementById(`${row}-${col}`);
 			if (!elm) continue;
 
-			elm.addEventListener('click', handlePieceSelection);
+			// elm.addEventListener('click', handlePieceSelection);
 
 			if (row === 0 || row === 1) elm.classList.add(row === 1 ? 'bp' : `b${positionStack[col]}`);
 			else elm.classList.add(row === 6 ? 'wp' : `w${positionStack[col]}`);
