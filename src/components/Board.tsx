@@ -3,11 +3,11 @@ import handlePieceSelection from '@/helpers/handlePieceSelection';
 import hasPiece from '@/helpers/hasPiece';
 import { Dispatch, SetStateAction } from 'react';
 
-export default function Board({ turn, setTurn }: { turn: string; setTurn: Dispatch<SetStateAction<string>> }) {
+export default function Board({ turn, setTurn, check, setCheck }: { turn: string; setTurn: Dispatch<SetStateAction<string>>; check: string; setCheck: Dispatch<SetStateAction<string>> }) {
 	function handleLocationSelection(e: any) {
 		e = e?.target;
 		const piece = hasPiece(e);
-		if (document.querySelector('.bg-blue-500') && (!piece || piece[0] !== turn)) return handleMove(e, setTurn);
+		if (document.querySelector('.bg-blue-500') && (!piece || piece[0] !== turn)) return handleMove(e, setTurn, setCheck);
 		if (!piece || turn !== piece[0]) return;
 		handlePieceSelection(e, piece, setTurn);
 	}

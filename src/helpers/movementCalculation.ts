@@ -1,9 +1,11 @@
 'use client';
+import { Dispatch, SetStateAction } from 'react';
 import hasPiece from './hasPiece';
 
-export default function movementCalculation(team: string, piece: string, row: number, col: number) {
+//setCheck is only defined when checking if king has been threatened at start of round (happens in background)
+export default function movementCalculation(team: string, piece: string, row: number, col: number, setCheck?: Dispatch<SetStateAction<string>>) {
 	const enemy = team === 'w' ? 'b' : 'w';
-	if (piece === 'p') return pawnCalculation(team, enemy, row, col);
+	if (piece === 'p') return pawnCalculation(team, enemy, row, col, setCheck);
 	if (!(piece === 'r' || piece === 'b' || piece === 'q' || piece === 'n' || piece === 'k')) return; //invalid input
 
 	const moveset = pieceMovements[piece];
@@ -16,6 +18,15 @@ export default function movementCalculation(team: string, piece: string, row: nu
 			// out of bounds, cannot continue in this direction so exit
 			if (!toTest) break;
 			let pieceAtLoc = hasPiece(toTest);
+
+			//check if king has been threatened
+			if (setCheck) {
+				if (pieceAtLoc === `${enemy}k`) setCheck(enemy);
+				if (pieceAtLoc) break;
+				else continue;
+			}
+
+			//show user possible moves/kills
 			if (!pieceAtLoc) toTest?.classList.add('possible_move');
 			else if (pieceAtLoc[0] === enemy) {
 				toTest?.classList.add('possible_kill');
@@ -25,7 +36,7 @@ export default function movementCalculation(team: string, piece: string, row: nu
 	});
 }
 
-function pawnCalculation(team: string, enemy: string, row: number, col: number) {
+function pawnCalculation(team: string, enemy: string, row: number, col: number, setCheck?: Dispatch<SetStateAction<string>>) {
 	function addMoveIfValid(row: number, col: number) {
 		const toTest = document.getElementById(`${row}-${col}`);
 		if (!toTest) return;
@@ -36,19 +47,22 @@ function pawnCalculation(team: string, enemy: string, row: number, col: number) 
 	const moveDirection = team === 'w' ? -1 : 1; //up/down based on white/black
 	const startRow = team === 'w' ? 6 : 1; //if on start row allow to move 2 blocks (start row for white is 6th from top)
 
-	addMoveIfValid(row + moveDirection, col); //basic 1 block movement
-
-	//allow to move two spaces forward if at start and no other piece blocks it
-	if (row === startRow) addMoveIfValid(row + moveDirection * 2, col);
-
 	//diagonal kill
 	[1, -1].forEach((direction) => {
 		//direction here is left/right
 		const toTest = document.getElementById(`${row + moveDirection}-${col + direction}`);
 		if (!toTest) return;
 		let pieceAtLoc = hasPiece(toTest);
-		if (pieceAtLoc && pieceAtLoc[0] === enemy) toTest?.classList.add('possible_kill'); //allow movement only if diagonal piece is enemy
+		if (setCheck && pieceAtLoc === `${enemy}k`) return setCheck(enemy);
+		if (!setCheck && pieceAtLoc && pieceAtLoc[0] === enemy) toTest?.classList.add('possible_kill'); //allow movement only if diagonal piece is enemy
 	});
+
+	if (setCheck) return; //pawns cannot kill by moving forward
+
+	addMoveIfValid(row + moveDirection, col); //basic 1 block movement
+
+	//allow to move two spaces forward if at start and no other piece blocks it
+	if (row === startRow) addMoveIfValid(row + moveDirection * 2, col);
 }
 
 //moveset of each piece

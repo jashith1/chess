@@ -4,13 +4,16 @@ import { useEffect, useState } from 'react';
 
 export default function Home() {
 	const [turn, setTurn] = useState('w');
+	const [check, setCheck] = useState(''); //possible states: ['', 'w', 'b', 'cmw', 'cmb'], cm is checkmate and indicated color is the one currently experiencing check.
+
 	useEffect(() => {
 		initializeBoard();
 	}, []);
 
 	return (
 		<>
-			<Board turn={turn} setTurn={setTurn} />
+			<Board turn={turn} setTurn={setTurn} check={check} setCheck={setCheck} />
+			{check && <h1>{check + ` has been checked`}</h1>}
 		</>
 	);
 }
@@ -24,8 +27,6 @@ function initializeBoard() {
 		for (let col = 0; col < 8; col++) {
 			const elm = document.getElementById(`${row}-${col}`);
 			if (!elm) continue;
-
-			// elm.addEventListener('click', handlePieceSelection);
 
 			if (row === 0 || row === 1) elm.classList.add(row === 1 ? 'bp' : `b${positionStack[col]}`);
 			else elm.classList.add(row === 6 ? 'wp' : `w${positionStack[col]}`);
