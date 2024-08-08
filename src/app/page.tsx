@@ -12,23 +12,21 @@ export default function Home() {
 	}, []);
 
 	useEffect(() => {
-		//at start of every turn reset check path
-		setCheck([]);
-	}, [turn]);
-
-	useEffect(() => {
 		//check if new player's king has been threatened by going through all enemy pieces
 		const positionStack = ['r', 'n', 'b', 'q', 'k', 'p'];
 		const enemy = turn === 'w' ? 'b' : 'w';
+
+		//at start of every turn reset check path
+		let checkTemp: string[][] = [];
 		positionStack.forEach((piece) => {
 			document.querySelectorAll(`.${enemy}${piece}`).forEach((pieceElement) => {
 				let [row, col] = pieceElement?.id.split('-').map(Number);
-				movementCalculation(enemy, piece, row, col, [], check, setCheck);
-				console.log(check);
+				const isCheck = movementCalculation(enemy, piece, row, col, [], checkTemp, setCheck);
+				if (isCheck) checkTemp = isCheck;
 			});
 		});
-		//"check" is a dependency because of double checks and the fact that useEffect is asynchronous, meaning it needs to be called multiple times if you need to capture path of more than one threatening piece
-	}, [turn, check]);
+		setCheck(checkTemp);
+	}, [turn]);
 
 	return (
 		<>

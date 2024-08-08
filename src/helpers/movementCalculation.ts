@@ -24,9 +24,8 @@ export default function movementCalculation(team: string, piece: string, row: nu
 				const hasBeenVisited = check.find((path) => path[0] === `${row}-${col}`);
 				if (hasBeenVisited) return;
 				if (pieceAtLoc === `${enemy}k`) {
-					const path = Array.from(Array(i + 1).keys()).map((x) => `${row + direction.rowDelta * x}-${col + direction.colDelta * x}`);
-					setCheck([...check, path]);
-					console.log([...check, path]);
+					const path = Array.from(Array(i).keys()).map((x) => `${row + direction.rowDelta * x}-${col + direction.colDelta * x}`);
+					check.push(path);
 				}
 				if (pieceAtLoc) break;
 				else continue;
@@ -40,6 +39,10 @@ export default function movementCalculation(team: string, piece: string, row: nu
 			} else break;
 		}
 	});
+	if (setCheck && check) {
+		setCheck(check);
+		return check;
+	}
 }
 
 function pawnCalculation(team: string, enemy: string, row: number, col: number, positionsToCheck?: number[][], check?: string[][], setCheck?: Dispatch<SetStateAction<string[][]>>) {
