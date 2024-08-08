@@ -9,7 +9,7 @@ export default function Board({ turn, setTurn, check, setCheck }: { turn: string
 		const piece = hasPiece(e);
 		if (document.querySelector('.bg-blue-500') && (!piece || piece[0] !== turn)) return handleMove(e, setTurn);
 		if (!piece || turn !== piece[0]) return;
-		handlePieceSelection(e, piece, setTurn);
+		handlePieceSelection(e, piece, check, setCheck);
 	}
 
 	return (

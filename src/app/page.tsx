@@ -1,6 +1,6 @@
 'use client';
 import Board from '@/components/Board';
-import movementCalculation from '@/helpers/movementCalculation';
+import isKingThreatened from '@/helpers/isKingThreatened';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
@@ -12,26 +12,13 @@ export default function Home() {
 	}, []);
 
 	useEffect(() => {
-		//check if new player's king has been threatened by going through all enemy pieces
-		const positionStack = ['r', 'n', 'b', 'q', 'k', 'p'];
-		const enemy = turn === 'w' ? 'b' : 'w';
-
-		//at start of every turn reset check path
-		let checkTemp: string[][] = [];
-		positionStack.forEach((piece) => {
-			document.querySelectorAll(`.${enemy}${piece}`).forEach((pieceElement) => {
-				let [row, col] = pieceElement?.id.split('-').map(Number);
-				const isCheck = movementCalculation(enemy, piece, row, col, [], checkTemp, setCheck);
-				if (isCheck) checkTemp = isCheck;
-			});
-		});
-		setCheck(checkTemp);
+		isKingThreatened(turn, setCheck);
 	}, [turn]);
 
 	return (
 		<>
 			<Board turn={turn} setTurn={setTurn} check={check} setCheck={setCheck} />
-			{check && <h1>{check + ` has been checked`}</h1>}
+			{check.length > 0 && <h1>{check + ` has been checked`}</h1>}
 		</>
 	);
 }
