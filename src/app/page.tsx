@@ -1,14 +1,34 @@
 'use client';
 import Board from '@/components/Board';
+import movementCalculation from '@/helpers/movementCalculation';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
 	const [turn, setTurn] = useState('w');
-	const [check, setCheck] = useState(''); //possible states: ['', 'w', 'b', 'cmw', 'cmb'], cm is checkmate and indicated color is the one currently experiencing check.
+	const [check, setCheck] = useState<string[][]>([]); //contains path from attacking piece to king
 
 	useEffect(() => {
 		initializeBoard();
 	}, []);
+
+	useEffect(() => {
+		//at start of every turn reset check path
+		setCheck([]);
+	}, [turn]);
+
+	useEffect(() => {
+		//check if new player's king has been threatened by going through all enemy pieces
+		const positionStack = ['r', 'n', 'b', 'q', 'k', 'p'];
+		const enemy = turn === 'w' ? 'b' : 'w';
+		positionStack.forEach((piece) => {
+			document.querySelectorAll(`.${enemy}${piece}`).forEach((pieceElement) => {
+				let [row, col] = pieceElement?.id.split('-').map(Number);
+				movementCalculation(enemy, piece, row, col, [], check, setCheck);
+				console.log(check);
+			});
+		});
+		//"check" is a dependency because of double checks and the fact that useEffect is asynchronous, meaning it needs to be called multiple times if you need to capture path of more than one threatening piece
+	}, [turn, check]);
 
 	return (
 		<>

@@ -1,9 +1,8 @@
 import { Dispatch, SetStateAction } from 'react';
 import clearPreviousSelections from './clearPreviousSelections';
 import hasPiece from './hasPiece';
-import isKingThreatened from './isKingThreatened';
 
-export default function handleMove(newLocation: any, setTurn: Dispatch<SetStateAction<string>>, setCheck: Dispatch<SetStateAction<string>>) {
+export default function handleMove(newLocation: any, setTurn: Dispatch<SetStateAction<string>>) {
 	const previousLocation = document.querySelector('.bg-blue-500');
 	const previousLocationClasses = previousLocation?.classList;
 
@@ -19,5 +18,4 @@ export default function handleMove(newLocation: any, setTurn: Dispatch<SetStateA
 	clearPreviousSelections();
 	newLocation.classList.add(piece);
 	setTurn(enemy);
-	isKingThreatened(enemy, setCheck); //after every move check if next player's king is threatened
 }
