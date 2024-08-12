@@ -36,8 +36,11 @@ export default function movementCalculation(team: string, piece: string, row: nu
 			if(!canMove && pieceAtLoc) break;
 			else if(!canMove) continue;
 
-			//show user possible moves/kills
-			if (!pieceAtLoc) toTest?.classList.add('possible_move');
+			if (piece === 'k' && isKingThreatened(team, document.querySelector(`.${enemy}k`)?.id, toTest.id)) continue;
+
+			if (!pieceAtLoc)
+				//show user possible moves/kills
+				toTest?.classList.add('possible_move');
 			else if (pieceAtLoc[0] === enemy) {
 				toTest?.classList.add('possible_kill');
 				break;
