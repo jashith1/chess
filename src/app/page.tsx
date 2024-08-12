@@ -6,19 +6,21 @@ import { useEffect, useState } from 'react';
 export default function Home() {
 	const [turn, setTurn] = useState('w');
 	const [check, setCheck] = useState<string[][]>([]); //contains path from attacking piece to king
+	const [checkmate, setCheckmate] = useState(false);
 
 	useEffect(() => {
 		initializeBoard();
 	}, []);
 
 	useEffect(() => {
-		isKingThreatened(turn, '', false, setCheck);
+		isKingThreatened(turn, '', '', setCheck, setCheckmate);
 	}, [turn]);
 
 	return (
 		<>
 			<Board turn={turn} setTurn={setTurn} check={check} setCheck={setCheck} />
 			{check.length > 0 && <h1>{check + ` has been checked`}</h1>}
+			{checkmate && <h1>Congrats! {turn === 'w' ? 'black' : 'white'} won!</h1>}
 		</>
 	);
 }
