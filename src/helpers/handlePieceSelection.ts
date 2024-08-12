@@ -9,5 +9,5 @@ export default function handlePieceSelection(e: any, piece: string, check: strin
 	e.classList.add('bg-blue-500');
 	//only allow movement of selected piece if moving it doesnt make you "check" yourself
 	if (check.length > 0 && check[0].length > 0) movementCalculation(piece[0], piece[1], row, col, '', check);
-	else if (!isKingThreatened(piece[0], setCheck, `${row}-${col}`)) movementCalculation(piece[0], piece[1], row, col);
+	else if (!isKingThreatened(piece[0], `${row}-${col}`)) movementCalculation(piece[0], piece[1], row, col);
 }

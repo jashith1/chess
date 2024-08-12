@@ -12,7 +12,7 @@ export default function Home() {
 	}, []);
 
 	useEffect(() => {
-		isKingThreatened(turn, setCheck);
+		isKingThreatened(turn, '', false, setCheck);
 	}, [turn]);
 
 	return (

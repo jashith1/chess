@@ -1,8 +1,9 @@
 'use client';
 import hasPiece from './hasPiece';
+import isKingThreatened from './isKingThreatened';
 
 //setCheck is only defined when checking if king has been threatened at start of round (happens in background)
-export default function movementCalculation(team: string, piece: string, row: number, col: number, pieceToIgnore?: string, positionsToCheck?: string[][], check?: string[][],) {
+export default function movementCalculation(team: string, piece: string, row: number, col: number, pieceToIgnore?: string, positionsToCheck?: string[][], check?: string[][], kingLoc?: string) {
 	const enemy = team === 'w' ? 'b' : 'w';
 	if (piece === 'p') return pawnCalculation(team, enemy, row, col, positionsToCheck, check);
 	if (!(piece === 'r' || piece === 'b' || piece === 'q' || piece === 'n' || piece === 'k')) return; //invalid input
@@ -20,7 +21,7 @@ export default function movementCalculation(team: string, piece: string, row: nu
 
 			//check if king has been threatened
 			if (check) {
-				if (pieceAtLoc === `${enemy}k`) {
+				if (toTest.id === kingLoc) {
 					const path = Array.from(Array(i).keys()).map((x) => `${row + direction.rowDelta * x}-${col + direction.colDelta * x}`);
 					check.push(path);
 				}
@@ -28,7 +29,10 @@ export default function movementCalculation(team: string, piece: string, row: nu
 				else continue;
 			}
 
-			const canMove = !positionsToCheck || positionsToCheck.length === 0 || positionsToCheck?.every(path => path.includes(toTest.id)); //every attack path must be blocked by going here
+			let canMove = !positionsToCheck || positionsToCheck.length === 0;
+			if(piece !== 'k' && !canMove && positionsToCheck?.every(path => path.includes(toTest.id))) canMove = true; //every attack path must be blocked by moving piece here
+			else if(piece === 'k' && !canMove && !isKingThreatened(team, document.querySelector(`.${enemy}k`)?.id, toTest.id)) canMove = true;
+
 			if(!canMove && pieceAtLoc) break;
 			else if(!canMove) continue;
 
