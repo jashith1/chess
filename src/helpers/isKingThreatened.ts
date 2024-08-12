@@ -12,7 +12,7 @@ export default function isKingThreatened(turn: string, setCheck: Dispatch<SetSta
 	positionStack.forEach((piece) => {
 		document.querySelectorAll(`.${enemy}${piece}`).forEach((pieceElement) => {
 			let [row, col] = pieceElement?.id.split('-').map(Number);
-			const isCheck = movementCalculation(enemy, piece, row, col, pieceToIgnore, [], checkTemp, setCheck);
+			const isCheck = movementCalculation(enemy, piece, row, col, pieceToIgnore, [], checkTemp);
 			if (isCheck) checkTemp = isCheck;
 		});
 	});

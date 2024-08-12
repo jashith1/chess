@@ -1,11 +1,10 @@
 'use client';
-import { Dispatch, SetStateAction } from 'react';
 import hasPiece from './hasPiece';
 
 //setCheck is only defined when checking if king has been threatened at start of round (happens in background)
-export default function movementCalculation(team: string, piece: string, row: number, col: number, pieceToIgnore?: string, positionsToCheck?: string[][], check?: string[][], setCheck?: Dispatch<SetStateAction<string[][]>>) {
+export default function movementCalculation(team: string, piece: string, row: number, col: number, pieceToIgnore?: string, positionsToCheck?: string[][], check?: string[][],) {
 	const enemy = team === 'w' ? 'b' : 'w';
-	if (piece === 'p') return pawnCalculation(team, enemy, row, col, positionsToCheck, check, setCheck);
+	if (piece === 'p') return pawnCalculation(team, enemy, row, col, positionsToCheck, check);
 	if (!(piece === 'r' || piece === 'b' || piece === 'q' || piece === 'n' || piece === 'k')) return; //invalid input
 
 	const moveset = pieceMovements[piece];
@@ -20,7 +19,7 @@ export default function movementCalculation(team: string, piece: string, row: nu
 			let pieceAtLoc = hasPiece(toTest);
 
 			//check if king has been threatened
-			if (setCheck && check) {
+			if (check) {
 				if (pieceAtLoc === `${enemy}k`) {
 					const path = Array.from(Array(i).keys()).map((x) => `${row + direction.rowDelta * x}-${col + direction.colDelta * x}`);
 					check.push(path);
@@ -30,7 +29,8 @@ export default function movementCalculation(team: string, piece: string, row: nu
 			}
 
 			const canMove = !positionsToCheck || positionsToCheck.length === 0 || positionsToCheck?.every(path => path.includes(toTest.id)); //every attack path must be blocked by going here
-			if(!canMove) continue;
+			if(!canMove && pieceAtLoc) break;
+			else if(!canMove) continue;
 
 			//show user possible moves/kills
 			if (!pieceAtLoc) toTest?.classList.add('possible_move');
@@ -40,18 +40,20 @@ export default function movementCalculation(team: string, piece: string, row: nu
 			} else break;
 		}
 	});
-	if (setCheck && check) {
+	if (check) {
 		return check;
 	}
 }
 
-function pawnCalculation(team: string, enemy: string, row: number, col: number, positionsToCheck?: string[][], check?: string[][], setCheck?: Dispatch<SetStateAction<string[][]>>) {
+function pawnCalculation(team: string, enemy: string, row: number, col: number, positionsToCheck?: string[][], check?: string[][],) {
 	function addMoveIfValid(row: number, col: number) {
 		const toTest = document.getElementById(`${row}-${col}`);
 		if (!toTest) return;
 		const canMove = !positionsToCheck || positionsToCheck.length === 0 || positionsToCheck?.every((path) => path.includes(toTest.id));
-		if (!hasPiece(toTest) && canMove) toTest?.classList.add('possible_move');
-		else return 'blocked';
+		const pieceAtFront = hasPiece(toTest);
+
+		if (!pieceAtFront && canMove) toTest?.classList.add('possible_move');
+		else if (pieceAtFront) return 'blocked'; 
 	}
 
 	//@to-do pawn transform at enemies last row
@@ -64,15 +66,15 @@ function pawnCalculation(team: string, enemy: string, row: number, col: number, 
 		const toTest = document.getElementById(`${row + moveDirection}-${col + direction}`);
 		if (!toTest) return;
 		let pieceAtLoc = hasPiece(toTest);
-		if (setCheck && check && pieceAtLoc === `${enemy}k`) check.push([`${row}-${col}`]);
-		else if (!setCheck && pieceAtLoc && pieceAtLoc[0] === enemy) toTest?.classList.add('possible_kill'); //allow movement only if diagonal piece is enemy
-		else if(!setCheck && positionsToCheck && positionsToCheck.length > 0 && positionsToCheck[0][0]===toTest.id) toTest?.classList.add('possible_kill');
+		if(!pieceAtLoc || pieceAtLoc[0] === team) return;
+		if (check && pieceAtLoc === `${enemy}k`) check.push([`${row}-${col}`]);
+		else if (!check && !positionsToCheck && pieceAtLoc && pieceAtLoc[0] === enemy) toTest?.classList.add('possible_kill'); //allow movement only if diagonal piece is enemy
+		else if (!check && positionsToCheck && positionsToCheck[0][0] === toTest.id) toTest?.classList.add('possible_kill');
 	});
 
-	if (setCheck || check) return check; //pawns cannot kill by moving forward
+	if (check) return check; 
 
 	const front = addMoveIfValid(row + moveDirection, col); //basic 1 block movement
-
 	//allow to move two spaces forward if at start and no other piece blocks it
 	if (row === startRow && front !== 'blocked') addMoveIfValid(row + moveDirection * 2, col);
 
