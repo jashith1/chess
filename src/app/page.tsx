@@ -18,7 +18,7 @@ export default function Home() {
 
 	return (
 		<>
-			<Board turn={turn} setTurn={setTurn} check={check} setCheck={setCheck} />
+			<Board turn={turn} setTurn={setTurn} check={check} setCheck={setCheck} isCheckmate={checkmate} />
 			{check.length > 0 && <h1>{check + ` has been checked`}</h1>}
 			{checkmate && <h1>Congrats! {turn === 'w' ? 'black' : 'white'} won!</h1>}
 		</>

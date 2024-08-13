@@ -1,6 +1,6 @@
 # Chess
 
-Built with Next.js and uses png assets from https://www.chess.com
+Built with Next.js and uses png assets from https://www.chess.com \
 Deployed with vercel at https://chess-beta-ruby.vercel.app/
 
 TO-DO:
