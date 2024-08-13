@@ -14,17 +14,15 @@ export default function Board({ turn, setTurn, check, setCheck, isCheckmate }: {
 	}
 
 	return (
-		<div id='board'>
-			{Array.from({ length: 8 }, (_, row) => (
-				<div key={row}>
-					{Array.from({ length: 8 }, (_, col) => {
-						let white = false;
-						//if both row and column are even or odd then generate white tile, if not generate black tile.
-						if ((col % 2 === 0 && row % 2 === 0) || (col % 2 !== 0 && row % 2 !== 0)) white = true;
-						return <div className={`rectangle ${white ? 'bg-white' : 'bg-black'}`} id={`${row}-${col}`} key={`${row}-${col}`} onClick={handleLocationSelection} />;
-					})}
-				</div>
-			))}
+		<div className='flex justify-center items-center min-h-screen p-4'>
+			<div id='board' className='inline-grid grid-cols-8 shadow-lg' style={{ width: 'min(80vmin, 800px)' }}>
+				{Array.from({ length: 64 }, (_, i) => {
+					const row = Math.floor(i / 8);
+					const col = i % 8;
+					const white = (row + col) % 2 === 0;
+					return <div className={`${white ? 'bg-white' : 'bg-black'} square`} id={`${row}-${col}`} key={`${row}-${col}`} onClick={handleLocationSelection} />;
+				})}
+			</div>
 		</div>
 	);
 }
