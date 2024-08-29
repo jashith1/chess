@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction } from 'react';
 import clearPreviousSelections from './clearPreviousSelections';
 import hasPiece from './hasPiece';
 
-export default function handleMove(newLocation: any, setTurn: Dispatch<SetStateAction<string>>) {
+export default function handleMove(newLocation: any, setTurn: Dispatch<SetStateAction<string>>, moves: any, setMoves: Dispatch<SetStateAction<any[]>>) {
 	const previousLocation = document.querySelector('.bg-blue-500');
 	const previousLocationClasses = previousLocation?.classList;
 
@@ -18,4 +18,5 @@ export default function handleMove(newLocation: any, setTurn: Dispatch<SetStateA
 	clearPreviousSelections();
 	newLocation.classList.add(piece);
 	setTurn(enemy);
+	setMoves([...moves, { location: newLocation.id, piece: piece }]);
 }
