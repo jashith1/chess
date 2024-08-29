@@ -1,3 +1,4 @@
+//TO-DO: show winner screen at checkmate
 import getPieceImage from '@/helpers/getPieceImage';
 import handleMove from '@/helpers/handleMove';
 import handlePieceSelection from '@/helpers/handlePieceSelection';

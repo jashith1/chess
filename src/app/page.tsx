@@ -2,6 +2,7 @@
 import Board from '@/components/Board';
 import isKingThreatened from '@/helpers/isKingThreatened';
 import { useEffect, useState } from 'react';
+import confetti from 'canvas-confetti';
 
 export default function Home() {
 	const [turn, setTurn] = useState('w');
@@ -15,6 +16,22 @@ export default function Home() {
 	useEffect(() => {
 		isKingThreatened(turn, '', '', setCheck, setCheckmate);
 	}, [turn]);
+
+	useEffect(() => {
+		if (!checkmate) return;
+		const winner = turn === 'w' ? 'b' : 'w';
+		const yOrigin = winner === 'b' ? 0 : 1; //spawn on side of winner, ie at top if black wins and bottom if white wins
+		const angle = winner === 'b' ? -90 : 90; //spawn making it fall downward if black is winner else upward if winner is white
+		//top/bottom confettis
+		[0.25, 0.75].forEach((xOrigin) => {
+			//spawn 2 confettis, one at 1/4 and the other at 3/4 of screen horizontally
+			confetti({ origin: { x: xOrigin, y: yOrigin }, angle: angle, scalar: 2, particleCount: 100, spread: 90 });
+		});
+
+		//sideways confetti
+		confetti({ origin: { x: 0, y: 0.5 }, angle: 0, scalar: 2, particleCount: 100, spread: 90 });
+		confetti({ origin: { x: 1, y: 0.5 }, angle: 180, scalar: 2, particleCount: 100, spread: 90 });
+	}, [checkmate]);
 
 	return (
 		<>
