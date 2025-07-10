@@ -3,30 +3,36 @@
 import React, { useState, useEffect } from 'react';
 import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth, googleProvider, UserData } from '@/lib/firebase';
-import { createUserDocument, getUserData } from '@/lib/userData';
+import { createUserDocument, getUserData, updateUserStats } from '@/lib/userData';
 
-export default function Auth() {
+interface AuthProps {
+  onUserDataChange?: (userData: UserData | null) => void;
+}
+
+export default function Auth({ onUserDataChange }: AuthProps) {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Authentication state changes
+  // Listen for authentication state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       
       if (currentUser) {
-        // Get user data
+        // Load user data from Firestore
         let userDoc = await getUserData(currentUser.uid);
         
-        // Create if needed
+        // If user document doesn't exist, create it
         if (!userDoc) {
           userDoc = await createUserDocument(currentUser);
         }
         
         setUserData(userDoc);
+        onUserDataChange?.(userDoc);
       } else {
         setUserData(null);
+        onUserDataChange?.(null);
       }
       
       setLoading(false);
@@ -36,7 +42,7 @@ export default function Auth() {
     return () => unsubscribe();
   }, []);
 
-
+  // Sign in with Google
   const signInWithGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -46,6 +52,7 @@ export default function Auth() {
     }
   };
 
+  // Sign out
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -55,6 +62,7 @@ export default function Auth() {
     }
   };
 
+  // Show loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center p-4">
@@ -63,6 +71,7 @@ export default function Auth() {
     );
   }
 
+  // Show user info if logged in
   if (user && userData) {
     return (
       <div className="flex items-center gap-4 p-4 rounded-lg shadow-md mb-6">
@@ -101,6 +110,7 @@ export default function Auth() {
     );
   }
 
+  // Show login button if not logged in
   return (
     <div className="flex justify-center p-4">
       <button
