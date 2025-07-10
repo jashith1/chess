@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-
-console.log(process.env.API_KEY, typeof(process.env.API_KEY))
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_API_KEY,
@@ -16,3 +15,15 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+export const db = getFirestore(app);
+
+export interface UserData {
+  uid: string;
+  displayName: string;
+  email: string;
+  photoURL: string;
+  gamesPlayed: number;
+  wins: number;
+  createdAt: Date;
+}

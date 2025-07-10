@@ -2,16 +2,33 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
+import { auth, googleProvider, UserData } from '@/lib/firebase';
+import { createUserDocument, getUserData } from '@/lib/userData';
 
 export default function Auth() {
   const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Authentication state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      
+      if (currentUser) {
+        // Get user data
+        let userDoc = await getUserData(currentUser.uid);
+        
+        // Create if needed
+        if (!userDoc) {
+          userDoc = await createUserDocument(currentUser);
+        }
+        
+        setUserData(userDoc);
+      } else {
+        setUserData(null);
+      }
+      
       setLoading(false);
     });
 
@@ -46,21 +63,37 @@ export default function Auth() {
     );
   }
 
-  if (user) {
+  if (user && userData) {
     return (
-      <div className="flex items-center gap-4 p-4 rounded-lg shadow-md">
+      <div className="flex items-center gap-4 p-4 rounded-lg shadow-md mb-6">
         <img 
-          src={user.photoURL || ''} 
-          alt={user.displayName || 'User'} 
-          className="w-10 h-10 rounded-full"
+          src={userData.photoURL || ''} 
+          alt={userData.displayName || 'User'} 
+          className="w-12 h-12 rounded-full"
         />
-        <div>
-          <p className="font-semibold">{user.displayName}</p>
-          <p className="text-sm text-gray-400">{user.email}</p>
+        <div className="flex-1">
+          <p className="font-semibold text-lg">{userData.displayName}</p>
+          <p className="text-sm text-gray-600">{userData.email}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-sm text-gray-600">Games Played</p>
+          <p className="text-xl font-bold">{userData.gamesPlayed}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-sm text-gray-600">Wins</p>
+          <p className="text-xl font-bold text-green-600">{userData.wins}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-sm text-gray-600">Win Rate</p>
+          <p className="text-xl font-bold">
+            {userData.gamesPlayed > 0 
+              ? `${Math.round((userData.wins / userData.gamesPlayed) * 100)}%` 
+              : '0%'}
+          </p>
         </div>
         <button
           onClick={handleSignOut}
-          className="ml-auto px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          className="ml-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
         >
           Sign Out
         </button>
