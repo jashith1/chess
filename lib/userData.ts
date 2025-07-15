@@ -25,11 +25,11 @@ export async function getUserData(uid: string): Promise<UserData | null> {
   try {
     const userDoc = await getDoc(doc(db, 'users', uid));
     
-    if (userDoc.exists()) {
-      return userDoc.data() as UserData;
-    } else {
-      return null;
+    if (!userDoc.exists()) {
+      return null
     }
+    return userDoc.data() as UserData;
+    
   } catch (error) {
     console.error('Error getting user data:', error);
     return null;

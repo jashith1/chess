@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Chess, Square } from 'chess.js';
 import { Socket } from 'socket.io-client';
+import { updateUserStats } from '@/lib/userData';
+import { UserData } from '@/lib/firebase';
 
 const PIECES = {
   'wK': '♚', 'wQ': '♛', 'wR': '♜', 'wB': '♝', 'wN': '♞', 'wP': '♟',
@@ -17,14 +19,16 @@ interface ChessBoardProps {
   };
   socket?: Socket;
   isMultiplayer?: boolean;
+  userData?: UserData;
 }
 
-export default function ChessBoard({ gameData, socket, isMultiplayer = false }: ChessBoardProps) {
+export default function ChessBoard({ gameData, socket, isMultiplayer = false, userData }: ChessBoardProps) {
   // Create a new chess game instance
   const [game, setGame] = useState(new Chess());
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [gameStatus, setGameStatus] = useState<string>('');
   const [playerColor, setPlayerColor] = useState<'white' | 'black' | null>(null);
+  const [statsUpdated, setStatsUpdated] = useState(false); // Prevent duplicate updates
 
   // Initialize multiplayer game state
   useEffect(() => {
@@ -49,15 +53,29 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false }: 
         setSelectedSquare(null)
       };
 
-      const handleGameEnded = (data: any) => {
+      const handleGameEnded = async (data: any) => {
         console.log('Game ended:', data);
         let message = '';
+        let playerWon = false;
+
         if (data.winner) {
+          playerWon = data.winner === gameData.color;
           message = `${data.winner === gameData.color ? 'You' : 'Opponent'} won by ${data.reason}!`;
         } else {
           message = `Game ended in a ${data.reason}`;
         }
         setGameStatus(message);
+
+        if (userData && userData.uid && !statsUpdated) {
+          setStatsUpdated(true);
+          try {
+            await updateUserStats(userData.uid, playerWon);
+            console.log('User stats updated successfully');
+            
+          } catch (error) {
+            console.error('Failed to update user stats:', error);
+          }
+        }
       };
 
       const handleOpponentDisconnected = () => {

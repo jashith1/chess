@@ -17,7 +17,6 @@ export default function Home() {
   useEffect(() => {
     if (userData && !socket) {
       const newSocket = io('http://localhost:3001');
-      console.log("In")
       setSocket(newSocket);
     }
   }, [userData, socket]);
@@ -61,7 +60,7 @@ export default function Home() {
           />
         )}
         
-        {currentGame && socket && (
+        {typeof userData !== "string" && currentGame && socket && (
           <div className="mt-6">
             <div className="p-4 rounded-lg shadow-md mb-4">
               <h3 className="text-lg font-semibold">
@@ -78,6 +77,7 @@ export default function Home() {
               gameData={currentGame} 
               socket={socket}
               isMultiplayer={true} 
+              userData={userData || undefined}
             />
           </div>
         )}
