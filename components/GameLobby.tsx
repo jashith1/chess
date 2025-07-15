@@ -1,50 +1,50 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 import { UserData } from '@/lib/firebase';
 
 interface GameLobbyProps {
   userData: UserData;
+  socket: Socket;
   onGameStart: (gameData: any) => void;
 }
 
-export default function GameLobby({ userData, onGameStart }: GameLobbyProps) {
-  const [socket, setSocket] = useState<Socket | null>(null);
+export default function GameLobby({ userData, socket, onGameStart }: GameLobbyProps) {
   const [isLookingForGame, setIsLookingForGame] = useState(false);
   const [gameStatus, setGameStatus] = useState<string>('');
 
   useEffect(() => {
-    // Connect to socket server
-    const newSocket = io('http://localhost:3001');
-    setSocket(newSocket);
-
     // Listen for game events
-    newSocket.on('waiting-for-opponent', () => {
+    const handleWaitingForOpponent = () => {
       setGameStatus('Waiting for opponent...');
-    });
+    };
 
-    newSocket.on('game-started', (gameData) => {
+    const handleGameStarted = (gameData: any) => {
       console.log('Game started:', gameData);
       setIsLookingForGame(false);
       setGameStatus('');
       onGameStart(gameData);
-    });
+    };
 
-    newSocket.on('opponent-disconnected', () => {
+    const handleOpponentDisconnected = () => {
       setGameStatus('Opponent disconnected');
       setIsLookingForGame(false);
-    });
-
-    // Cleanup on unmount
-    return () => {
-      newSocket.disconnect();
     };
-  }, [onGameStart]);
+
+    socket.on('waiting-for-opponent', handleWaitingForOpponent);
+    socket.on('game-started', handleGameStarted);
+    socket.on('opponent-disconnected', handleOpponentDisconnected);
+
+    // Cleanup listeners on unmount
+    return () => {
+      socket.off('waiting-for-opponent', handleWaitingForOpponent);
+      socket.off('game-started', handleGameStarted);
+      socket.off('opponent-disconnected', handleOpponentDisconnected);
+    };
+  }, [socket, onGameStart]);
 
   const findGame = () => {
-    if (!socket) return;
-    
     setIsLookingForGame(true);
     setGameStatus('Looking for opponent...');
     
@@ -59,12 +59,7 @@ export default function GameLobby({ userData, onGameStart }: GameLobbyProps) {
   };
 
   const cancelSearch = () => {
-    if (socket) {
-      socket.disconnect();
-      // Reconnect to reset state
-      const newSocket = io('http://localhost:3001');
-      setSocket(newSocket);
-    }
+    socket.emit('cancel-search'); // Notify server to cancel search
     setIsLookingForGame(false);
     setGameStatus('');
   };

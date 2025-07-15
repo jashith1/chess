@@ -1,24 +1,107 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Chess, Square } from 'chess.js';
+import { Socket } from 'socket.io-client';
 
 const PIECES = {
   'wK': '♚', 'wQ': '♛', 'wR': '♜', 'wB': '♝', 'wN': '♞', 'wP': '♟',
   'bK': '♔', 'bQ': '♕', 'bR': '♖', 'bB': '♗', 'bN': '♘', 'bP': '♙',
 };
 
-export default function ChessBoard() {
+interface ChessBoardProps {
+  gameData?: {
+    gameId: string;
+    color: 'white' | 'black';
+    opponent: any;
+    fen: string;
+  };
+  socket?: Socket;
+  isMultiplayer?: boolean;
+}
+
+export default function ChessBoard({ gameData, socket, isMultiplayer = false }: ChessBoardProps) {
   // Create a new chess game instance
   const [game, setGame] = useState(new Chess());
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [gameStatus, setGameStatus] = useState<string>('');
+  const [playerColor, setPlayerColor] = useState<'white' | 'black' | null>(null);
+
+  // Initialize multiplayer game state
+  useEffect(() => {
+    if (isMultiplayer && gameData && socket) {
+      setPlayerColor(gameData.color);
+
+      // Set initial game state
+      setGame(new Chess(gameData.fen));
+
+      // Define event handlers
+      const handleMoveMade = (data: any) => {
+        setGame(new Chess(data.fen));
+        setSelectedSquare(null);
+        
+        if (data.isGameOver) {
+          setGameStatus('Game Over');
+        }
+      };
+
+      const handleInvalidMove = (data: any) => {
+        console.log('Invalid move:', data.reason);
+        setSelectedSquare(null)
+      };
+
+      const handleGameEnded = (data: any) => {
+        console.log('Game ended:', data);
+        let message = '';
+        if (data.winner) {
+          message = `${data.winner === gameData.color ? 'You' : 'Opponent'} won by ${data.reason}!`;
+        } else {
+          message = `Game ended in a ${data.reason}`;
+        }
+        setGameStatus(message);
+      };
+
+      const handleOpponentDisconnected = () => {
+        setGameStatus('Opponent disconnected');
+      };
+
+      // Listen for game events
+      socket.on('move-made', handleMoveMade);
+      socket.on('invalid-move', handleInvalidMove);
+      socket.on('game-ended', handleGameEnded);
+      socket.on('opponent-disconnected', handleOpponentDisconnected);
+
+      // Cleanup listeners on unmount
+      return () => {
+        socket.off('move-made', handleMoveMade);
+        socket.off('invalid-move', handleInvalidMove);
+        socket.off('game-ended', handleGameEnded);
+        socket.off('opponent-disconnected', handleOpponentDisconnected);
+      };
+    }
+  }, [isMultiplayer, gameData, socket]);
 
   // Get the current board position
   const board = game.board();
 
-  // Hanlde click
+  // Check if it's the player's turn
+  const isPlayerTurn = () => {
+    if (!isMultiplayer) return true;
+    if (!playerColor) return false;
+    
+    const currentTurn = game.turn();
+    return (currentTurn === 'w' && playerColor === 'white') || 
+           (currentTurn === 'b' && playerColor === 'black');
+  };
+
+  // Handle click
   const handleSquareClick = (row: number, col: number) => {
-    if(game.isCheckmate()){
-      //dont allow changes after checkmate
+    if (game.isGameOver()) {
+      // Don't allow changes after game over
+      return;
+    }
+
+    // In multiplayer, only allow moves on player's turn
+    if (isMultiplayer && !isPlayerTurn()) {
       return;
     }
 
@@ -36,46 +119,76 @@ export default function ChessBoard() {
       // Clicking same square so deselect
       setSelectedSquare(null);
     } 
-    else if(game.get(square)?.color === game.turn()){
+    else if (game.get(square)?.color === game.turn()) {
       // Choosing new piece to move instead
-      setSelectedSquare(square)
+      setSelectedSquare(square);
     }
     else {
       // Try to make the move
-      try {
-        const move = game.move({
-          from: selectedSquare,
-          to: square,
+      if (isMultiplayer && socket && gameData) {
+        // Send move to server for multiplayer
+        socket.emit('make-move', {
+          gameId: gameData.gameId,
+          move: {
+            from: selectedSquare,
+            to: square,
+          }
         });
-        
-        if (move) {
-          // Move was successful so update the game state
-          // Fen is the string representation of current chessboard
-          setGame(new Chess(game.fen()));
-          setSelectedSquare(null);
+      } else {
+        // Local game - make move directly
+        try {
+          const move = game.move({
+            from: selectedSquare,
+            to: square,
+          });
+          
+          if (move) {
+            // Move was successful so update the game state
+            setGame(new Chess(game.fen()));
+            setSelectedSquare(null);
+          }
+        } catch (error) {
+          // Invalid move
+          console.log("invalid move")
         }
-      } catch (error) {
-        // Invalid move so just deselect
-        setSelectedSquare(null);
       }
     }
   };
 
-  // Reset the game
+  // Reset the game (only for local games)
   const resetGame = () => {
-    setGame(new Chess());
-    setSelectedSquare(null);
+    if (!isMultiplayer) {
+      setGame(new Chess());
+      setSelectedSquare(null);
+      setGameStatus('');
+    }
   };
 
   return (
     <div className="flex flex-col items-center p-4">
-      <h1 className="text-2xl font-bold mb-4">Chess!</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        {isMultiplayer ? `Chess - Playing as ${playerColor}` : 'Chess!'}
+      </h1>
       
       {/* Game info */}
       <div className="mb-4 text-center">
-        {!game.isCheckmate() && <p className="text-lg">
-          Current turn: {game.turn() === 'w' ? 'White' : 'Black'}
-        </p>}
+        {gameStatus && (
+          <p className="text-lg font-bold text-red-500 mb-2">{gameStatus}</p>
+        )}
+        
+        {!game.isGameOver() && !gameStatus && (
+          <div>
+            <p className="text-lg">
+              Current turn: {game.turn() === 'w' ? 'White' : 'Black'}
+            </p>
+            {isMultiplayer && (
+              <p className="text-sm text-gray-600">
+                {isPlayerTurn() ? 'Your turn' : "Opponent's turn"}
+              </p>
+            )}
+          </div>
+        )}
+        
         {game.isCheck() && !game.isCheckmate() && (
           <p className="text-red-500 font-bold">Check!</p>
         )}
@@ -103,6 +216,7 @@ export default function ChessBoard() {
                   ${isLight ? 'bg-green-500' : 'bg-zinc-500'}
                   ${isSelected ? 'ring-4 ring-blue-500 z-1' : ''}
                   hover:brightness-120
+                  ${isMultiplayer && !isPlayerTurn() ? 'cursor-not-allowed opacity-75' : ''}
                 `}
                 onClick={() => handleSquareClick(rowIndex, colIndex)}
               >
@@ -113,13 +227,15 @@ export default function ChessBoard() {
         )}
       </div>
 
-      {/* Reset button */}
-      <button
-        onClick={resetGame}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Reset Game
-      </button>
+      {/* Reset button (only for local games) */}
+      {!isMultiplayer && (
+        <button
+          onClick={resetGame}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Reset Game
+        </button>
+      )}
     </div>
   );
 }
