@@ -124,7 +124,8 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
     }
 
     // Convert row and col num to chess notation (like a8)
-    const square = (String.fromCharCode(97 + col) + (8 - row)) as Square;
+    const actualRow = (isMultiplayer && playerColor === 'black') ? (7 - row) : row;
+    const square = (String.fromCharCode(97 + col) + (8 - actualRow)) as Square;
     
     if (selectedSquare === null) {
       // First click so select a piece
@@ -222,6 +223,7 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
       <div className="grid grid-cols-8 gap-0 border-2 border-gray-800">
         {board.map((row, rowIndex) =>
           row.map((square, colIndex) => {
+            const displayRow = (isMultiplayer && playerColor === 'black') ? (7 - rowIndex) : rowIndex;
             const isLight = (rowIndex + colIndex) % 2 === 0;
             const squareNotation = String.fromCharCode(97 + colIndex) + (8 - rowIndex);
             const isSelected = selectedSquare === squareNotation;
@@ -236,7 +238,10 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
                   hover:brightness-120
                   ${isMultiplayer && !isPlayerTurn() ? 'cursor-not-allowed opacity-75' : ''}
                 `}
-                onClick={() => handleSquareClick(rowIndex, colIndex)}
+                onClick={() => handleSquareClick(displayRow, colIndex)}
+                style={{
+                  order: displayRow * 8 + colIndex
+                }}
               >
                 {square && PIECES[`${square.color}${square.type.toUpperCase()}` as keyof typeof PIECES]}
               </div>
