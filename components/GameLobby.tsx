@@ -8,9 +8,10 @@ interface GameLobbyProps {
   userData: UserData;
   socket: Socket;
   onGameStart: (gameData: any) => void;
+  chooseSinglePlayer?: () => void;
 }
 
-export default function GameLobby({ userData, socket, onGameStart }: GameLobbyProps) {
+export default function GameLobby({ userData, socket, onGameStart, chooseSinglePlayer }: GameLobbyProps) {
   const [isLookingForGame, setIsLookingForGame] = useState(false);
   const [gameStatus, setGameStatus] = useState<string>('');
 
@@ -69,15 +70,20 @@ export default function GameLobby({ userData, socket, onGameStart }: GameLobbyPr
       <h2 className="text-2xl font-bold mb-4">Multiplayer Chess</h2>
       
       {!isLookingForGame ? (
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Search for another player:</p>
-          <button
-            onClick={findGame}
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold"
-          >
-            Find Game
-          </button>
-        </div>
+        <div className="text-center flex gap-4">
+            <button
+              onClick={findGame}
+              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold"
+            >
+              Find Game
+            </button>
+            {chooseSinglePlayer && <button
+              onClick={chooseSinglePlayer}
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold"
+            >
+              Practice Game
+            </button>}
+          </div>
       ) : (
         <div className="text-center">
           <div className="mb-4">

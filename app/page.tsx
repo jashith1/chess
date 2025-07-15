@@ -12,6 +12,7 @@ export default function Home() {
   const [currentGame, setCurrentGame] = useState<any>(null);
   const [userData, setUserData] = useState<UserData | null | string>('loading');
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [forceSinglePlayer, setForceSinglePlayer] = useState<boolean>(false)
 
   // Initialize socket connection when user is authenticated
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function Home() {
   };
 
   const handleGameEnd = () => {
+    setForceSinglePlayer(false);
     setCurrentGame(null);
     socket?.disconnect()
     setSocket(null)
@@ -47,20 +49,25 @@ export default function Home() {
     }
   };
 
+  const chooseSinglePlayer = () => {
+    setForceSinglePlayer(true)
+  }
+
   return (
     <main className="min-h-screen">
       <div className="container mx-auto py-8">
         <Auth onUserDataChange={handleUserDataChange} />
         
-        {userData && typeof userData !== "string" && socket && !currentGame && (
+        {!forceSinglePlayer && userData && typeof userData !== "string" && socket && !currentGame && (
           <GameLobby 
             userData={userData} 
             socket={socket}
             onGameStart={handleGameStart} 
+            chooseSinglePlayer={chooseSinglePlayer}
           />
         )}
         
-        {typeof userData !== "string" && currentGame && socket && (
+        {!forceSinglePlayer && typeof userData !== "string" && currentGame && socket && (
           <div className="mt-6">
             <div className="p-4 rounded-lg shadow-md mb-4">
               <h3 className="text-lg font-semibold">
@@ -82,10 +89,17 @@ export default function Home() {
           </div>
         )}
         
-        {!userData && userData != "loading" && (
+        {((!userData && userData !== "loading") || (forceSinglePlayer)) && (
           <div className="mt-6">
             <div className="p-4 rounded-lg shadow-md mb-4 text-center">
-              <p className="text-gray-600">Sign in to play multiplayer, or play locally below:</p>
+              <p className="text-gray-600">You are playing a practice match</p>
+              {!userData && userData !== "loading" && <>
+                <p>Sign in to play online!</p>
+              </>}
+              {forceSinglePlayer && <button
+                onClick={handleGameEnd}
+                className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+              > Leave Game</button>}
             </div>
             <ChessBoard isMultiplayer={false} />
           </div>
