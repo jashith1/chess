@@ -1,15 +1,7 @@
 'use client';
 
+import { GameData, GameLobbyProps } from '@/types/game';
 import React, { useState, useEffect } from 'react';
-import { Socket } from 'socket.io-client';
-import { UserData } from '@/lib/firebase';
-
-interface GameLobbyProps {
-  userData: UserData;
-  socket: Socket;
-  onGameStart: (gameData: any) => void;
-  chooseSinglePlayer?: () => void;
-}
 
 export default function GameLobby({ userData, socket, onGameStart, chooseSinglePlayer }: GameLobbyProps) {
   const [isLookingForGame, setIsLookingForGame] = useState(false);
@@ -21,7 +13,7 @@ export default function GameLobby({ userData, socket, onGameStart, chooseSingleP
       setGameStatus('Waiting for opponent...');
     };
 
-    const handleGameStarted = (gameData: any) => {
+    const handleGameStarted = (gameData: GameData) => {
       console.log('Game started:', gameData);
       setIsLookingForGame(false);
       setGameStatus('');

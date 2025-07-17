@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { auth, googleProvider, UserData } from '@/lib/firebase';
-import { createUserDocument, getUserData, updateUserStats } from '@/lib/userData';
+import { auth, googleProvider } from '@/lib/firebase';
+import { createUserDocument, getUserData } from '@/lib/userData';
+import { UserData } from '@/types/game';
 
 interface AuthProps {
   onUserDataChange?: (userData: UserData | null) => void;
@@ -40,7 +41,7 @@ export default function Auth({ onUserDataChange }: AuthProps) {
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   // Sign in with Google
   const signInWithGoogle = async () => {

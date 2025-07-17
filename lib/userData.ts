@@ -1,6 +1,7 @@
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { db, UserData } from './firebase';
+import { db } from './firebase';
+import { UserData } from '@/types/game';
 
 // Create new user document
 export async function createUserDocument(user: User): Promise<UserData> {

@@ -17,13 +17,3 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
 export const db = getFirestore(app);
-
-export interface UserData {
-  uid: string;
-  displayName: string;
-  email: string;
-  photoURL: string;
-  gamesPlayed: number;
-  wins: number;
-  createdAt: Date;
-}

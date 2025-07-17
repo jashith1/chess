@@ -1,26 +1,13 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Chess, Square } from 'chess.js';
-import { Socket } from 'socket.io-client';
 import { updateUserStats } from '@/lib/userData';
-import { UserData } from '@/lib/firebase';
+import { ChessBoardProps, moveData } from '@/types/game';
 
 const PIECES = {
   'wK': '♚', 'wQ': '♛', 'wR': '♜', 'wB': '♝', 'wN': '♞', 'wP': '♟',
   'bK': '♔', 'bQ': '♕', 'bR': '♖', 'bB': '♗', 'bN': '♘', 'bP': '♙',
 };
-
-interface ChessBoardProps {
-  gameData?: {
-    gameId: string;
-    color: 'white' | 'black';
-    opponent: any;
-    fen: string;
-  };
-  socket?: Socket;
-  isMultiplayer?: boolean;
-  userData?: UserData;
-}
 
 export default function ChessBoard({ gameData, socket, isMultiplayer = false, userData }: ChessBoardProps) {
   // Create a new chess game instance
@@ -39,7 +26,7 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
       setGame(new Chess(gameData.fen));
 
       // Define event handlers
-      const handleMoveMade = (data: any) => {
+      const handleMoveMade = (data: moveData) => {
         setGame(new Chess(data.fen));
         setSelectedSquare(null);
         
@@ -48,12 +35,12 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
         }
       };
 
-      const handleInvalidMove = (data: any) => {
+      const handleInvalidMove = (data: {reason: string}) => {
         console.log('Invalid move:', data.reason);
         setSelectedSquare(null)
       };
 
-      const handleGameEnded = async (data: any) => {
+      const handleGameEnded = async (data: {winner: string, reason: string}) => {
         console.log('Game ended:', data);
         let message = '';
         let playerWon = false;
@@ -168,7 +155,7 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
           }
         } catch (error) {
           // Invalid move
-          console.log("invalid move")
+          console.log("invalid move", error)
         }
       }
     }
@@ -215,7 +202,7 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
           <p className="text-red-500 font-bold">Checkmate! {game.turn() === 'w' ? 'Black' : 'White'} wins!</p>
         )}
         {game.isStalemate() && (
-          <p className="text-yellow-500 font-bold">Stalemate! It's a draw!</p>
+          <p className="text-yellow-500 font-bold">{`Stalemate! It's a draw!`}</p>
         )}
       </div>
 
@@ -236,7 +223,7 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
                   ${isLight ? 'bg-green-500' : 'bg-zinc-500'}
                   ${isSelected ? 'ring-4 ring-blue-500 z-1' : ''}
                   hover:brightness-120
-                  ${isMultiplayer && !isPlayerTurn() ? 'cursor-not-allowed opacity-75' : ''}
+                  ${isMultiplayer && (!isPlayerTurn() || game.isGameOver()) ? 'cursor-not-allowed opacity-75' : ''}
                 `}
                 onClick={() => handleSquareClick(displayRow, colIndex)}
                 style={{

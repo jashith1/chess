@@ -6,10 +6,10 @@ import { io, Socket } from 'socket.io-client';
 import ChessBoard from '@/components/ChessBoard';
 import Auth from '@/components/Auth';
 import GameLobby from '@/components/GameLobby';
-import { UserData } from '@/lib/firebase';
+import { GameData, UserData } from '@/types/game';
 
 export default function Home() {
-  const [currentGame, setCurrentGame] = useState<any>(null);
+  const [currentGame, setCurrentGame] = useState<GameData | null>(null);
   const [userData, setUserData] = useState<UserData | null | string>('loading');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [forceSinglePlayer, setForceSinglePlayer] = useState<boolean>(false)
@@ -30,7 +30,7 @@ export default function Home() {
     }
   }, [userData, socket]);
 
-  const handleGameStart = (gameData: any) => {
+  const handleGameStart = (gameData: GameData) => {
     setCurrentGame(gameData);
   };
 
