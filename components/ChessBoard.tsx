@@ -5,11 +5,6 @@ import { updateUserStats } from '@/lib/userData';
 import { ChessBoardProps, moveData } from '@/types/game';
 import Image from 'next/image';
 
-const PIECES = {
-  'wK': '♚', 'wQ': '♛', 'wR': '♜', 'wB': '♝', 'wN': '♞', 'wP': '♟',
-  'bK': '♔', 'bQ': '♕', 'bR': '♖', 'bB': '♗', 'bN': '♘', 'bP': '♙',
-};
-
 export default function ChessBoard({ gameData, socket, isMultiplayer = false, userData }: ChessBoardProps) {
   // Create a new chess game instance
   const [game, setGame] = useState(new Chess());
