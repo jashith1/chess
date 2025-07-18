@@ -56,7 +56,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
         <Auth onUserDataChange={handleUserDataChange} />
         
         {!forceSinglePlayer && userData && typeof userData !== "string" && socket && !currentGame && (
@@ -69,14 +69,14 @@ export default function Home() {
         )}
         
         {!forceSinglePlayer && typeof userData !== "string" && currentGame && socket && (
-          <div className="mt-6">
-            <div className="p-4 rounded-lg shadow-md mb-4">
-              <h3 className="text-lg font-semibold">
+          <div className="mt-3 sm:mt-6">
+            <div className="p-3 sm:p-4 rounded-lg shadow-md mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold mb-2">
                 Playing as {currentGame.color} vs {currentGame.opponent.displayName}
               </h3>
               <button
                 onClick={handleGameEnd}
-                className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm sm:text-base min-h-[44px]"
               >
                 Leave Game
               </button>
@@ -91,15 +91,15 @@ export default function Home() {
         )}
         
         {((!userData && userData !== "loading") || (forceSinglePlayer)) && (
-          <div className="mt-6">
-            <div className="p-4 rounded-lg shadow-md mb-4 text-center">
-              <p className="text-gray-600">You are playing a practice match</p>
+          <div className="mt-3 sm:mt-6">
+            <div className="p-3 sm:p-4 rounded-lg shadow-md mb-3 sm:mb-4 text-center">
+              <p className="text-gray-600 text-sm sm:text-base">You are playing a practice match</p>
               {!userData && userData !== "loading" && <>
-                <p>Sign in to play online!</p>
+                <p className="text-sm sm:text-base">Sign in to play online!</p>
               </>}
               {forceSinglePlayer && <button
                 onClick={handleGameEnd}
-                className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                className="mt-2 px-3 py-2 sm:px-4 sm:py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm sm:text-base min-h-[44px]"
               > Leave Game</button>}
             </div>
             <ChessBoard isMultiplayer={false} />

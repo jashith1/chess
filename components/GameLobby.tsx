@@ -58,39 +58,39 @@ export default function GameLobby({ userData, socket, onGameStart, chooseSingleP
   };
 
   return (
-    <div className="flex flex-col items-center p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Multiplayer Chess</h2>
+    <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg shadow-md">
+      <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Multiplayer Chess</h2>
       
       {!isLookingForGame ? (
-        <div className="text-center flex gap-4">
+        <div className="text-center flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
             <button
               onClick={findGame}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold"
+              className="px-4 py-2 sm:px-6 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold text-sm sm:text-base min-h-[44px]"
             >
               Find Game
             </button>
             {chooseSinglePlayer && <button
               onClick={chooseSinglePlayer}
-              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold"
+              className="px-4 py-2 sm:px-6 sm:py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold text-sm sm:text-base min-h-[44px]"
             >
               Practice Game
             </button>}
           </div>
       ) : (
         <div className="text-center">
-          <div className="mb-4">
+          <div className="mb-3 sm:mb-4">
             {/* Loading spinner */}
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-500"></div>
           </div>
-          <p className="text-lg font-semibold mb-2">{gameStatus}</p>
-          <p className="text-gray-600 mb-4">
+          <p className="text-base sm:text-lg font-semibold mb-2">{gameStatus}</p>
+          <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base px-2">
             {gameStatus === 'Waiting for opponent...' 
               ? 'Another player will join shortly' 
               : 'Searching for available players'}
           </p>
           <button
             onClick={cancelSearch}
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm sm:text-base min-h-[44px]"
           >
             Cancel Search
           </button>

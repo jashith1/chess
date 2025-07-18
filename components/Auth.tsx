@@ -75,35 +75,37 @@ export default function Auth({ onUserDataChange }: AuthProps) {
   // Show user info if logged in
   if (user && userData) {
     return (
-      <div className="flex items-center gap-4 p-4 rounded-lg shadow-md mb-6">
+      <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg shadow-md mb-3 sm:mb-6">
         <img 
           src={userData.photoURL || ''} 
           alt={userData.displayName || 'User'} 
-          className="w-12 h-12 rounded-full"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
         />
-        <div className="flex-1">
-          <p className="font-semibold text-lg">{userData.displayName}</p>
-          <p className="text-sm text-gray-600">{userData.email}</p>
+        <div className="flex-1 text-center sm:text-left">
+          <p className="font-semibold text-base sm:text-lg">{userData.displayName}</p>
+          <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">{userData.email}</p>
         </div>
-        <div className="text-center">
-          <p className="text-sm text-gray-600">Games Played</p>
-          <p className="text-xl font-bold">{userData.gamesPlayed}</p>
-        </div>
-        <div className="text-center">
-          <p className="text-sm text-gray-600">Wins</p>
-          <p className="text-xl font-bold text-green-600">{userData.wins}</p>
-        </div>
-        <div className="text-center">
-          <p className="text-sm text-gray-600">Win Rate</p>
-          <p className="text-xl font-bold">
-            {userData.gamesPlayed > 0 
-              ? `${Math.round((userData.wins / userData.gamesPlayed) * 100)}%` 
-              : '0%'}
-          </p>
+        <div className="flex gap-4 sm:gap-6">
+          <div className="text-center">
+            <p className="text-xs sm:text-sm text-gray-600">Games</p>
+            <p className="text-lg sm:text-xl font-bold">{userData.gamesPlayed}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs sm:text-sm text-gray-600">Wins</p>
+            <p className="text-lg sm:text-xl font-bold text-green-600">{userData.wins}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs sm:text-sm text-gray-600">Win Rate</p>
+            <p className="text-lg sm:text-xl font-bold">
+              {userData.gamesPlayed > 0 
+                ? `${Math.round((userData.wins / userData.gamesPlayed) * 100)}%` 
+                : '0%'}
+            </p>
+          </div>
         </div>
         <button
           onClick={handleSignOut}
-          className="ml-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          className="mt-2 sm:mt-0 sm:ml-4 px-3 py-1 sm:px-4 sm:py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm sm:text-base"
         >
           Sign Out
         </button>

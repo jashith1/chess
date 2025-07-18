@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Chess, Square } from 'chess.js';
 import { updateUserStats } from '@/lib/userData';
 import { ChessBoardProps, moveData } from '@/types/game';
+import Image from 'next/image';
 
 const PIECES = {
   'wK': '♚', 'wQ': '♛', 'wR': '♜', 'wB': '♝', 'wN': '♞', 'wP': '♟',
@@ -170,21 +171,21 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
     }
   };
 
-  return (
-    <div className="flex flex-col items-center p-4">
-      <h1 className="text-2xl font-bold mb-4">
+return (
+    <div className="flex flex-col items-center p-2 sm:p-4 min-h-screen w-full max-w-4xl mx-auto">
+      <h1 className="text-lg sm:text-2xl font-bold mb-2 sm:mb-4 text-center px-2">
         {isMultiplayer ? `Chess - Playing as ${playerColor}` : 'Chess!'}
       </h1>
       
       {/* Game info */}
-      <div className="mb-4 text-center">
+      <div className="mb-2 sm:mb-4 text-center px-2 w-full">
         {gameStatus && (
-          <p className="text-lg font-bold text-red-500 mb-2">{gameStatus}</p>
+          <p className="text-base sm:text-lg font-bold text-red-500 mb-1 sm:mb-2">{gameStatus}</p>
         )}
         
         {!game.isGameOver() && !gameStatus && (
           <div>
-            <p className="text-lg">
+            <p className="text-base sm:text-lg">
               Current turn: {game.turn() === 'w' ? 'White' : 'Black'}
             </p>
             {isMultiplayer && (
@@ -196,52 +197,62 @@ export default function ChessBoard({ gameData, socket, isMultiplayer = false, us
         )}
         
         {game.isCheck() && !game.isCheckmate() && (
-          <p className="text-red-500 font-bold">Check!</p>
+          <p className="text-red-500 font-bold text-sm sm:text-base">Check!</p>
         )}
         {game.isCheckmate() && (
-          <p className="text-red-500 font-bold">Checkmate! {game.turn() === 'w' ? 'Black' : 'White'} wins!</p>
+          <p className="text-red-500 font-bold text-sm sm:text-base">Checkmate! {game.turn() === 'w' ? 'Black' : 'White'} wins!</p>
         )}
         {game.isStalemate() && (
-          <p className="text-yellow-500 font-bold">{`Stalemate! It's a draw!`}</p>
+          <p className="text-yellow-500 font-bold text-sm sm:text-base">{`Stalemate! It's a draw!`}</p>
         )}
       </div>
 
-      {/* Chess board */}
-      <div className="grid grid-cols-8 gap-0 border-2 border-gray-800">
-        {board.map((row, rowIndex) =>
-          row.map((square, colIndex) => {
-            const displayRow = (isMultiplayer && playerColor === 'black') ? (7 - rowIndex) : rowIndex;
-            const isLight = (rowIndex + colIndex) % 2 === 0;
-            const squareNotation = String.fromCharCode(97 + colIndex) + (8 - rowIndex);
-            const isSelected = selectedSquare === squareNotation;
-            
-            return (
-              <div
-                key={`${rowIndex}-${colIndex}`}
-                className={`
-                  w-16 h-16 flex items-center justify-center text-4xl cursor-pointer brightness-100
-                  ${isLight ? 'bg-green-500' : 'bg-zinc-500'}
-                  ${isSelected ? 'ring-4 ring-blue-500 z-1' : ''}
-                  hover:brightness-120
-                  ${isMultiplayer && (!isPlayerTurn() || game.isGameOver()) ? 'cursor-not-allowed opacity-75' : ''}
-                `}
-                onClick={() => handleSquareClick(displayRow, colIndex)}
-                style={{
-                  order: displayRow * 8 + colIndex
-                }}
-              >
-                {square && PIECES[`${square.color}${square.type.toUpperCase()}` as keyof typeof PIECES]}
-              </div>
-            );
-          })
-        )}
+      {/* Chess board - responsive container */}
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl mx-auto">
+        <div className="aspect-square w-full grid grid-cols-8 gap-0 border-2 border-gray-800 touch-manipulation">
+          {board.map((row, rowIndex) =>
+            row.map((square, colIndex) => {
+              const displayRow = (isMultiplayer && playerColor === 'black') ? (7 - rowIndex) : rowIndex;
+              const isLight = (rowIndex + colIndex) % 2 === 0;
+              const squareNotation = String.fromCharCode(97 + colIndex) + (8 - rowIndex);
+              const isSelected = selectedSquare === squareNotation;
+              
+              return (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className={`
+                    aspect-square flex items-center justify-center cursor-pointer brightness-100
+                    ${isSelected ? 'ring-2 sm:ring-4 ring-blue-500 z-1' : ''}
+                    hover:brightness-120 active:brightness-90
+                    ${isMultiplayer && (!isPlayerTurn() || game.isGameOver()) ? 'cursor-not-allowed opacity-75' : ''}
+                  `}
+                  
+                  onClick={() => handleSquareClick(displayRow, colIndex)}
+                  style={{
+                    backgroundColor: isLight ? '#e0e0f0' : '#5672a3',
+                    order: displayRow * 8 + colIndex
+                  }}
+                >
+                  {square && <Image
+                    src={`/pieces/${square.color}${square.type.toUpperCase()}.svg`}
+                    alt={`${square.color} ${square.type}`}
+                    width={0}
+                    height={0}
+                    className="w-[60%] h-[60%] sm:w-[70%] sm:h-[70%] pointer-events-none"
+                    priority={true}
+                  />}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
       {/* Reset button (only for local games) */}
       {!isMultiplayer && (
         <button
           onClick={resetGame}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 active:bg-blue-700 text-sm sm:text-base min-h-[44px]"
         >
           Reset Game
         </button>
