@@ -16,8 +16,9 @@ export default function Home() {
 
   // Initialize socket connection when user is authenticated
   useEffect(() => {
+    console.log("Launching in", process.env.NEXT_PUBLIC_ENV, "environment")
     if (userData && !socket) {
-      const newSocket = io('http://localhost:3001');
+      const newSocket = io(process.env.NEXT_PUBLIC_ENV === "production"? `https://chess-socket-2s9c.onrender.com/`: `http://localhost:3001`);
       setSocket(newSocket);
     }
   }, [userData, socket]);

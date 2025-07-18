@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.ENV === "production"? "https://chess-alpha-blond.vercel.app": "http://localhost:3000",
     methods: ["GET", "POST"]
   }
 });
@@ -177,5 +177,6 @@ function handleGameEnd(game, gameId) {
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Socket.io server running on port ${PORT}`);
+  console.log(`running in ${process.env.ENV} environment`)
   console.log('Waiting for players to connect...');
 });

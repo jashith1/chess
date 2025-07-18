@@ -1,5 +1,6 @@
 # A multiplayer chess webapp
-A multiplayer chess web application built with **Next.js** and **Socket.IO**, enabling real-time matchmaking and interactive game sessions. This app also supports Google OAuth for user authentication and uses **Firestore** to store user data such as games played, wins, etc.
+A multiplayer chess web application built with **Next.js** and **Socket.IO**, enabling real-time matchmaking and interactive game sessions. \
+This app also supports Google OAuth for user authentication and uses **Firestore** to store user data such as games played, wins, etc.
 
 ## Trying it out locally
 Make sure to have **node.js** and **npm** installed. \
